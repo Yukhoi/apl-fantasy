@@ -1,0 +1,392 @@
+// schema.prisma (UUID version for PostgreSQL + Prisma)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//
+// Enums
+//
+
+enum PlayerPosition {
+  GK
+  DEF
+  MID
+  FWD
+}
+
+enum PlayerStatus {
+  Available
+  Injured
+  Suspended
+  Unavailable
+}
+
+enum SeasonStatus {
+  Upcoming
+  Active
+  Finished
+}
+
+enum FixtureStatus {
+  Scheduled
+  Live
+  Finished
+  Postponed
+  Cancelled
+}
+
+enum TransferBatchStatus {
+  Draft
+  Confirmed
+  Cancelled
+}
+
+enum LedgerRefType {
+  System
+  TransferBatch
+  Manual
+}
+
+enum Formation {
+  F532
+  F541
+  F523
+  F451
+  F442
+  F433
+  F352
+  F343
+}
+
+//
+// Models (All PK/FK are UUID)
+//
+
+model User {
+  userId        String   @id @default(uuid()) @map("user_id") @db.Uuid
+  email         String   @unique
+  username      String   @unique
+  passwordHash  String   @map("password_hash")
+  registeredAt  DateTime @default(now()) @map("registered_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  isActive      Boolean  @default(true) @map("is_active")
+
+  userTeams           UserTeam[]
+  privateLeaguesOwned PrivateLeague[]       @relation("PrivateLeagueOwner")
+  leagueMemberships   PrivateLeagueMember[]
+
+  @@map("user")
+}
+
+model Season {
+  seasonId  String       @id @default(uuid()) @map("season_id") @db.Uuid
+  name      String       @unique
+  startDate DateTime     @map("start_date") @db.Date
+  endDate   DateTime     @map("end_date") @db.Date
+  status    SeasonStatus
+
+  gameweeks Gameweek[]
+  fixtures  Fixture[]
+  userTeams UserTeam[]
+  leagues   PrivateLeague[]
+
+  @@map("season")
+}
+
+model Club {
+  clubId    String  @id @default(uuid()) @map("club_id") @db.Uuid
+  name      String  @unique
+  shortName String? @map("short_name")
+
+  players      Player[]
+  homeFixtures Fixture[] @relation("HomeClub")
+  awayFixtures Fixture[] @relation("AwayClub")
+
+  @@map("club")
+}
+
+model Player {
+  playerId     String         @id @default(uuid()) @map("player_id") @db.Uuid
+  name         String
+  clubId       String         @map("club_id") @db.Uuid
+  position     PlayerPosition
+  status       PlayerStatus
+  currentPrice Decimal        @map("current_price") @db.Decimal(10, 2)
+
+  club         Club                  @relation(fields: [clubId], references: [clubId], onDelete: Restrict)
+  matchStats   PlayerMatchStats[]
+  squadEntries UserTeamPlayer[]
+  gwPicks      GameweekSquadPlayer[]
+
+  transfersOut Transfer[] @relation("TransferPlayerOut")
+  transfersIn  Transfer[] @relation("TransferPlayerIn")
+
+  captainedSquads     GameweekSquad[] @relation("CaptainPlayer")
+  viceCaptainedSquads GameweekSquad[] @relation("ViceCaptainPlayer")
+
+  @@index([clubId])
+  @@index([position])
+  @@unique([name, clubId])
+  @@map("player")
+}
+
+model Gameweek {
+  gameweekId String   @id @default(uuid()) @map("gameweek_id") @db.Uuid
+  seasonId   String   @map("season_id") @db.Uuid
+  gwNumber   Int      @map("gw_number")
+  deadlineAt DateTime @map("deadline_at")
+  startsAt   DateTime @map("starts_at")
+  endsAt     DateTime @map("ends_at")
+
+  season          Season                 @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
+  fixtures        Fixture[]
+  squads          GameweekSquad[]
+  transferBatches TransferBatch[]
+  ledgers         TransferCreditLedger[]
+
+  @@unique([seasonId, gwNumber])
+  @@index([seasonId])
+  @@index([deadlineAt])
+  @@map("gameweek")
+}
+
+model Fixture {
+  fixtureId  String        @id @default(uuid()) @map("fixture_id") @db.Uuid
+  seasonId   String        @map("season_id") @db.Uuid
+  gameweekId String        @map("gameweek_id") @db.Uuid
+  homeClubId String        @map("home_club_id") @db.Uuid
+  awayClubId String        @map("away_club_id") @db.Uuid
+  kickoffAt  DateTime      @map("kickoff_at")
+  status     FixtureStatus
+
+  season   Season   @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
+  gameweek Gameweek @relation(fields: [gameweekId], references: [gameweekId], onDelete: Cascade)
+  homeClub Club     @relation("HomeClub", fields: [homeClubId], references: [clubId], onDelete: Restrict)
+  awayClub Club     @relation("AwayClub", fields: [awayClubId], references: [clubId], onDelete: Restrict)
+
+  playerStats PlayerMatchStats[]
+
+  @@index([seasonId])
+  @@index([gameweekId])
+  @@index([kickoffAt])
+  @@map("fixture")
+}
+
+model PlayerMatchStats {
+  pmsId     String @id @default(uuid()) @map("pms_id") @db.Uuid
+  fixtureId String @map("fixture_id") @db.Uuid
+  playerId  String @map("player_id") @db.Uuid
+
+  minutesPlayed   Int     @map("minutes_played")
+  goals           Int
+  assists         Int
+  saves           Int
+  tackles         Int
+  yellowCards     Int     @map("yellow_cards")
+  redCards        Int     @map("red_cards")
+  ownGoals        Int     @map("own_goals")
+  cleanSheetAtSub Boolean @map("clean_sheet_at_sub")
+
+  fixture Fixture @relation(fields: [fixtureId], references: [fixtureId], onDelete: Cascade)
+  player  Player  @relation(fields: [playerId], references: [playerId], onDelete: Cascade)
+
+  @@unique([fixtureId, playerId])
+  @@index([playerId])
+  @@map("player_match_stats")
+}
+
+model UserTeam {
+  userTeamId String @id @default(uuid()) @map("user_team_id") @db.Uuid
+  userId     String @map("user_id") @db.Uuid
+  seasonId   String @map("season_id") @db.Uuid
+
+  teamName      String   @map("team_name")
+  budgetLimit   Decimal  @map("budget_limit") @db.Decimal(10, 2)
+  totalPoints   Int      @default(0) @map("total_points")
+  freeTransfers Int      @default(0) @map("free_transfers")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  season Season @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
+
+  squadPlayers      UserTeamPlayer[]
+  gameweekSquads    GameweekSquad[]
+  transferBatches   TransferBatch[]
+  ledgerEntries     TransferCreditLedger[]
+  leagueMemberships PrivateLeagueMember[]
+
+  @@unique([userId, seasonId])
+  @@index([seasonId])
+  @@index([userId])
+  @@map("user_team")
+}
+
+model UserTeamPlayer {
+  userTeamPlayerId String @id @default(uuid()) @map("user_team_player_id") @db.Uuid
+  userTeamId       String @map("user_team_id") @db.Uuid
+  playerId         String @map("player_id") @db.Uuid
+
+  isActive Boolean   @default(true) @map("is_active")
+  joinedAt DateTime  @default(now()) @map("joined_at")
+  leftAt   DateTime? @map("left_at")
+
+  userTeam UserTeam @relation(fields: [userTeamId], references: [userTeamId], onDelete: Cascade)
+  player   Player   @relation(fields: [playerId], references: [playerId], onDelete: Restrict)
+
+  @@index([userTeamId])
+  @@index([playerId])
+  @@map("user_team_player")
+}
+
+model GameweekSquad {
+  gwSquadId  String @id @default(uuid()) @map("gw_squad_id") @db.Uuid
+  userTeamId String @map("user_team_id") @db.Uuid
+  gameweekId String @map("gameweek_id") @db.Uuid
+
+  formation           Formation
+  captainPlayerId     String    @map("captain_player_id") @db.Uuid
+  viceCaptainPlayerId String    @map("vice_captain_player_id") @db.Uuid
+
+  submittedAt DateTime @default(now()) @map("submitted_at")
+  isLocked    Boolean  @default(false) @map("is_locked")
+
+  gwPoints          Int @default(0) @map("gw_points")
+  transferPointsHit Int @default(0) @map("transfer_points_hit")
+
+  userTeam UserTeam @relation(fields: [userTeamId], references: [userTeamId], onDelete: Cascade)
+  gameweek Gameweek @relation(fields: [gameweekId], references: [gameweekId], onDelete: Cascade)
+
+  captain     Player @relation("CaptainPlayer", fields: [captainPlayerId], references: [playerId], onDelete: Restrict)
+  viceCaptain Player @relation("ViceCaptainPlayer", fields: [viceCaptainPlayerId], references: [playerId], onDelete: Restrict)
+
+  picks GameweekSquadPlayer[]
+
+  @@unique([userTeamId, gameweekId])
+  @@index([gameweekId])
+  @@map("gameweek_squad")
+}
+
+model GameweekSquadPlayer {
+  gwSquadPlayerId String @id @default(uuid()) @map("gw_squad_player_id") @db.Uuid
+  gwSquadId       String @map("gw_squad_id") @db.Uuid
+  playerId        String @map("player_id") @db.Uuid
+
+  isStarting   Boolean @map("is_starting")
+  benchOrder   Int?    @map("bench_order") // 1..4 for bench; null for starters
+  playerPoints Int     @default(0) @map("player_points")
+  finalPoints  Int     @default(0) @map("final_points")
+
+  wasAutoSubbedIn  Boolean @default(false) @map("was_auto_subbed_in")
+  wasAutoSubbedOut Boolean @default(false) @map("was_auto_subbed_out")
+
+  gwSquad GameweekSquad @relation(fields: [gwSquadId], references: [gwSquadId], onDelete: Cascade)
+  player  Player        @relation(fields: [playerId], references: [playerId], onDelete: Restrict)
+
+  @@unique([gwSquadId, playerId])
+  @@index([playerId])
+  @@map("gameweek_squad_player")
+}
+
+model TransferBatch {
+  transferBatchId String @id @default(uuid()) @map("transfer_batch_id") @db.Uuid
+  userTeamId      String @map("user_team_id") @db.Uuid
+  gameweekId      String @map("gameweek_id") @db.Uuid
+
+  status      TransferBatchStatus
+  createdAt   DateTime            @default(now()) @map("created_at")
+  confirmedAt DateTime?           @map("confirmed_at")
+
+  transfersMade      Int     @default(0) @map("transfers_made")
+  pointsCost         Int     @default(0) @map("points_cost")
+  budgetBalanceAfter Decimal @map("budget_balance_after") @db.Decimal(10, 2)
+
+  userTeam UserTeam @relation(fields: [userTeamId], references: [userTeamId], onDelete: Cascade)
+  gameweek Gameweek @relation(fields: [gameweekId], references: [gameweekId], onDelete: Cascade)
+
+  transfers Transfer[]
+
+  @@index([userTeamId, gameweekId])
+  @@index([status])
+  @@map("transfer_batch")
+}
+
+model Transfer {
+  transferId      String @id @default(uuid()) @map("transfer_id") @db.Uuid
+  transferBatchId String @map("transfer_batch_id") @db.Uuid
+
+  playerOutId String @map("player_out_id") @db.Uuid
+  playerInId  String @map("player_in_id") @db.Uuid
+
+  sellPrice Decimal @map("sell_price") @db.Decimal(10, 2)
+  buyPrice  Decimal @map("buy_price") @db.Decimal(10, 2)
+
+  transferBatch TransferBatch @relation(fields: [transferBatchId], references: [transferBatchId], onDelete: Cascade)
+  playerOut     Player        @relation("TransferPlayerOut", fields: [playerOutId], references: [playerId], onDelete: Restrict)
+  playerIn      Player        @relation("TransferPlayerIn", fields: [playerInId], references: [playerId], onDelete: Restrict)
+
+  @@index([transferBatchId])
+  @@index([playerOutId])
+  @@index([playerInId])
+  @@map("transfer")
+}
+
+model TransferCreditLedger {
+  ledgerId   String @id @default(uuid()) @map("ledger_id") @db.Uuid
+  userTeamId String @map("user_team_id") @db.Uuid
+  gameweekId String @map("gameweek_id") @db.Uuid
+
+  delta     Int
+  reason    String
+  refType   LedgerRefType @map("ref_type")
+  refId     String?       @map("ref_id") @db.Uuid
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  userTeam UserTeam @relation(fields: [userTeamId], references: [userTeamId], onDelete: Cascade)
+  gameweek Gameweek @relation(fields: [gameweekId], references: [gameweekId], onDelete: Cascade)
+
+  @@index([userTeamId, gameweekId])
+  @@index([refType, refId])
+  @@map("transfer_credit_ledger")
+}
+
+model PrivateLeague {
+  leagueId    String @id @default(uuid()) @map("league_id") @db.Uuid
+  ownerUserId String @map("owner_user_id") @db.Uuid
+  seasonId    String @map("season_id") @db.Uuid
+
+  name       String
+  joinCode   String   @unique @map("join_code")
+  maxMembers Int      @default(20) @map("max_members")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  owner   User                  @relation("PrivateLeagueOwner", fields: [ownerUserId], references: [userId], onDelete: Cascade)
+  season  Season                @relation(fields: [seasonId], references: [seasonId], onDelete: Cascade)
+  members PrivateLeagueMember[]
+
+  @@index([seasonId])
+  @@index([ownerUserId])
+  @@map("private_league")
+}
+
+model PrivateLeagueMember {
+  leagueMemberId String   @id @default(uuid()) @map("league_member_id") @db.Uuid
+  leagueId       String   @map("league_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  userTeamId     String   @map("user_team_id") @db.Uuid
+  joinedAt       DateTime @default(now()) @map("joined_at")
+
+  league   PrivateLeague @relation(fields: [leagueId], references: [leagueId], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userTeam UserTeam      @relation(fields: [userTeamId], references: [userTeamId], onDelete: Cascade)
+
+  @@unique([leagueId, userId])
+  @@unique([leagueId, userTeamId])
+  @@index([userId])
+  @@index([userTeamId])
+  @@map("private_league_member")
+}

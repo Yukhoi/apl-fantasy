@@ -1,0 +1,14 @@
+[
+  { "name": "OL Lyonnes", "shortName": "OLL" },
+  { "name": "FC Nantes", "shortName": "FCN" },
+  { "name": "Paris FC", "shortName": "PFC" },
+  { "name": "Paris Saint-Germain", "shortName": "PSG" },
+  { "name": "FC Fleury 91", "shortName": "FCF" },
+  { "name": "RC Strasbourg Alsace", "shortName": "RCSA" },
+  { "name": "Dijon FCO", "shortName": "DFCO" },
+  { "name": "Le Havre AC", "shortName": "HAC" },
+  { "name": "Olympique de Marseille", "shortName": "OM" },
+  { "name": "RC Lens", "shortName": "RCL" },
+  { "name": "AS Saint-Etienne", "shortName": "ASSE" },
+  { "name": "Montpellier HSC", "shortName": "MHSC" }
+]
