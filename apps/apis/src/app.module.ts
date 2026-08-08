@@ -8,6 +8,7 @@ import { GameweeksModule } from './modules/gameweeks/gameweeks.module';
 import { SeasonsModule } from './modules/seasons/seasons.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { UserTeamsModule } from './modules/user-teams/user-teams.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { AuthModule } from './modules/auth/auth.module';
     GameweeksModule,
     SeasonsModule,
     UsersModule,
-    AuthModule
+    AuthModule,
+    UserTeamsModule
   ],
   controllers: [],
   providers: [],
