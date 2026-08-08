@@ -10,6 +10,7 @@ import {
 import { CreateUserTeamDto } from "../dto/create-user-team.dto";
 import { UserTeamResponseDto } from "../dto/user-team-response.dto";
 import { GetSeasonByIdUseCase } from "../../../seasons/application/use-cases/get-season-by-id.use-case";
+import { UserTeamMapper } from "../mappers/user-team.mapper";
 
 @Injectable()
 export class CreateUserTeamUseCase {
@@ -46,15 +47,6 @@ export class CreateUserTeamUseCase {
     });
 
     // 4. 返回 DTO
-    return {
-      userTeamId: created.userTeamId,
-      userId: created.userId,
-      seasonId: created.seasonId,
-      teamName: created.teamName,
-      budgetLimit: created.budgetLimit.toFixed(2),
-      totalPoints: created.totalPoints,
-      freeTransfers: created.freeTransfers,
-      createdAt: created.createdAt.toISOString(),
-    };
+    return UserTeamMapper.toResponse(created);
   }
 }

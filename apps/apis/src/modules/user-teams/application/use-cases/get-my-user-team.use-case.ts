@@ -5,6 +5,7 @@ import {
 } from "../../domain/repositories/user-team.repository";
 import { Inject, Injectable } from "@nestjs/common";
 import { NotFoundException } from "@nestjs/common";
+import { UserTeamMapper } from "../mappers/user-team.mapper";
 
 @Injectable()
 export class GetMyUserTeamUseCase {
@@ -26,15 +27,6 @@ export class GetMyUserTeamUseCase {
       throw new NotFoundException("User team not found");
     }
 
-    return {
-      userTeamId: team.userTeamId,
-      userId: team.userId,
-      seasonId: team.seasonId,
-      teamName: team.teamName,
-      budgetLimit: team.budgetLimit.toFixed(2),
-      totalPoints: team.totalPoints,
-      freeTransfers: team.freeTransfers,
-      createdAt: team.createdAt.toISOString(),
-    };
+    return UserTeamMapper.toResponse(team);
   }
 }
