@@ -17,5 +17,6 @@ import { PrismaSeasonRepository } from "./infrastructure/repositories/prisma-sea
       useClass: PrismaSeasonRepository,
     },
   ],
+  exports: [GetSeasonByIdUseCase, GetCurrentSeasonUseCase],
 })
 export class SeasonsModule {}
