@@ -1,14 +1,13 @@
 import { Module } from "@nestjs/common";
-
 import { SeasonsModule } from "../seasons/seasons.module";
 
 import { CreateUserTeamUseCase } from "./application/use-cases/create-user-team.use-case";
 import { GetMyUserTeamUseCase } from "./application/use-cases/get-my-user-team.use-case";
 import { GetUserTeamByIdUseCase } from "./application/use-cases/get-user-team-by-id.use-case";
 
+import { USER_TEAM_REPOSITORY } from "./domain/repositories/user-team.repository";
 import { PrismaUserTeamRepository } from "./infrastructure/repositories/prisma-user-team.repository";
 
-import { USER_TEAM_REPOSITORY } from "./domain/repositories/user-team.repository";
 import { UserTeamsController } from "./presentation/controllers/user-teams.controller";
 
 @Module({
@@ -20,7 +19,6 @@ import { UserTeamsController } from "./presentation/controllers/user-teams.contr
     CreateUserTeamUseCase,
     GetMyUserTeamUseCase,
     GetUserTeamByIdUseCase,
-
     {
       provide: USER_TEAM_REPOSITORY,
       useClass: PrismaUserTeamRepository,
@@ -28,9 +26,7 @@ import { UserTeamsController } from "./presentation/controllers/user-teams.contr
   ],
 
   exports: [
-    CreateUserTeamUseCase,
-    GetMyUserTeamUseCase,
-    GetUserTeamByIdUseCase,
+    USER_TEAM_REPOSITORY,
   ],
 })
 export class UserTeamsModule {}

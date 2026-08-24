@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+
 import { PlayersController } from './presentation/controllers/players.controller'
 import { GetAllPlayersUseCase } from './application/use-cases/get-all-players.use-case'
 import { GetPlayerByIdUseCase } from './application/use-cases/get-player-by-id.use-case'
@@ -7,6 +8,7 @@ import { PrismaPlayerRepository } from './infrastructure/repositories/prisma-pla
 
 @Module({
   controllers: [PlayersController],
+
   providers: [
     GetAllPlayersUseCase,
     GetPlayerByIdUseCase,
@@ -14,6 +16,10 @@ import { PrismaPlayerRepository } from './infrastructure/repositories/prisma-pla
       provide: PLAYER_REPOSITORY,
       useClass: PrismaPlayerRepository,
     },
+  ],
+
+  exports: [
+    PLAYER_REPOSITORY,
   ],
 })
 export class PlayersModule {}

@@ -31,4 +31,6 @@ export type PaginatedPlayersResult = {
 export interface PlayerRepository {
   findAll(options: FindPlayersOptions): Promise<PaginatedPlayersResult>
   findById(playerId: string): Promise<PlayerEntity | null>
+  findByIds(playerIds: string[]): Promise<PlayerEntity[]>
 }
+

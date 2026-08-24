@@ -9,6 +9,7 @@ import { SeasonsModule } from './modules/seasons/seasons.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserTeamsModule } from './modules/user-teams/user-teams.module';
+import { UserTeamPlayersModule } from './modules/user-team-players/user-team-players.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { UserTeamsModule } from './modules/user-teams/user-teams.module';
     SeasonsModule,
     UsersModule,
     AuthModule,
-    UserTeamsModule
+    UserTeamsModule,
+    UserTeamPlayersModule
   ],
   controllers: [],
   providers: [],

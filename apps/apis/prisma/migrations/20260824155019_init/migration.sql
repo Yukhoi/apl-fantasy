@@ -24,7 +24,10 @@ CREATE TABLE "user" (
     "user_id" UUID NOT NULL,
     "email" TEXT NOT NULL,
     "username" TEXT NOT NULL,
+    "password_hash" TEXT NOT NULL,
     "registered_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("user_id")
 );
@@ -123,6 +126,7 @@ CREATE TABLE "user_team_player" (
     "user_team_player_id" UUID NOT NULL,
     "user_team_id" UUID NOT NULL,
     "player_id" UUID NOT NULL,
+    "purchase_price" DECIMAL(10,2) NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "joined_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "left_at" TIMESTAMP(3),
@@ -233,6 +237,9 @@ CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 CREATE UNIQUE INDEX "user_username_key" ON "user"("username");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "season_name_key" ON "season"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "club_name_key" ON "club"("name");
 
 -- CreateIndex
@@ -240,6 +247,9 @@ CREATE INDEX "player_club_id_idx" ON "player"("club_id");
 
 -- CreateIndex
 CREATE INDEX "player_position_idx" ON "player"("position");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "player_name_club_id_key" ON "player"("name", "club_id");
 
 -- CreateIndex
 CREATE INDEX "gameweek_season_id_idx" ON "gameweek"("season_id");
@@ -279,6 +289,9 @@ CREATE INDEX "user_team_player_user_team_id_idx" ON "user_team_player"("user_tea
 
 -- CreateIndex
 CREATE INDEX "user_team_player_player_id_idx" ON "user_team_player"("player_id");
+
+-- CreateIndex
+CREATE INDEX "user_team_player_user_team_id_is_active_idx" ON "user_team_player"("user_team_id", "is_active");
 
 -- CreateIndex
 CREATE INDEX "gameweek_squad_gameweek_id_idx" ON "gameweek_squad"("gameweek_id");

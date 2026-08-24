@@ -227,9 +227,11 @@ model UserTeam {
 }
 
 model UserTeamPlayer {
-  userTeamPlayerId String @id @default(uuid()) @map("user_team_player_id") @db.Uuid
-  userTeamId       String @map("user_team_id") @db.Uuid
-  playerId         String @map("player_id") @db.Uuid
+  userTeamPlayerId String   @id @default(uuid()) @map("user_team_player_id") @db.Uuid
+  userTeamId       String   @map("user_team_id") @db.Uuid
+  playerId         String   @map("player_id") @db.Uuid
+
+  purchasePrice Decimal @map("purchase_price") @db.Decimal(10, 2)
 
   isActive Boolean   @default(true) @map("is_active")
   joinedAt DateTime  @default(now()) @map("joined_at")
@@ -240,6 +242,8 @@ model UserTeamPlayer {
 
   @@index([userTeamId])
   @@index([playerId])
+  @@index([userTeamId, isActive])
+
   @@map("user_team_player")
 }
 
