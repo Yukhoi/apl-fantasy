@@ -11,6 +11,7 @@ export class UserTeamMapper {
       seasonId: userTeam.seasonId,
       teamName: userTeam.teamName,
       budgetLimit: userTeam.budgetLimit.toFixed(2),
+      budgetBalance: userTeam.budgetBalance.toFixed(2),
       totalPoints: userTeam.totalPoints,
       freeTransfers: userTeam.freeTransfers,
       createdAt: userTeam.createdAt.toISOString(),

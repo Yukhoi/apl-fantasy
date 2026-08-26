@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { UserTeamEntity } from "../entities/user-team.entity";
 
 export const USER_TEAM_REPOSITORY = "USER_TEAM_REPOSITORY";
@@ -7,6 +8,7 @@ export type CreateUserTeamData = {
   seasonId: string;
   teamName: string;
   budgetLimit: string;
+  budgetBalance: string;
   freeTransfers: number;
 };
 
@@ -19,4 +21,9 @@ export interface UserTeamRepository {
   ): Promise<UserTeamEntity | null>;
 
   create(data: CreateUserTeamData): Promise<UserTeamEntity>;
+
+  updateBudgetBalance(
+    userTeamId: string,
+    budgetBalance: Prisma.Decimal,
+  ): Promise<void>;
 }

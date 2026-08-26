@@ -8,6 +8,7 @@ import {
   INITIAL_FREE_TRANSFERS,
 } from "../../domain/constants/user-team-rules";
 import { GetSeasonByIdUseCase } from "../../../seasons/application/use-cases/get-season-by-id.use-case";
+import { buffer } from "node:stream/consumers";
 
 describe("CreateUserTeamUseCase", () => {
   let useCase: CreateUserTeamUseCase;
@@ -19,6 +20,7 @@ describe("CreateUserTeamUseCase", () => {
       findById: jest.fn(),
       findByUserAndSeason: jest.fn(),
       create: jest.fn(),
+      updateBudgetBalance: jest.fn(),
     };
 
     getSeasonByIdUseCase = {
@@ -59,6 +61,7 @@ describe("CreateUserTeamUseCase", () => {
       seasonId,
       "Yukhoi FC",
       new Prisma.Decimal(INITIAL_BUDGET),
+      new Prisma.Decimal(INITIAL_BUDGET),
       0,
       INITIAL_FREE_TRANSFERS,
       createdAt,
@@ -82,6 +85,7 @@ describe("CreateUserTeamUseCase", () => {
       seasonId,
       teamName: "Yukhoi FC",
       budgetLimit: INITIAL_BUDGET,
+      budgetBalance: INITIAL_BUDGET,
       freeTransfers: INITIAL_FREE_TRANSFERS,
     });
 
@@ -91,6 +95,7 @@ describe("CreateUserTeamUseCase", () => {
       seasonId,
       teamName: "Yukhoi FC",
       budgetLimit: INITIAL_BUDGET,
+      budgetBalance: INITIAL_BUDGET,
       totalPoints: 0,
       freeTransfers: INITIAL_FREE_TRANSFERS,
       createdAt: createdAt.toISOString(),
@@ -110,6 +115,7 @@ describe("CreateUserTeamUseCase", () => {
         userId,
         seasonId,
         "Existing FC",
+        new Prisma.Decimal(INITIAL_BUDGET),
         new Prisma.Decimal(INITIAL_BUDGET),
         0,
         INITIAL_FREE_TRANSFERS,
@@ -145,9 +151,7 @@ describe("CreateUserTeamUseCase", () => {
       }),
     ).rejects.toThrow(NotFoundException);
 
-    expect(
-      userTeamRepository.findByUserAndSeason,
-    ).not.toHaveBeenCalled();
+    expect(userTeamRepository.findByUserAndSeason).not.toHaveBeenCalled();
 
     expect(userTeamRepository.create).not.toHaveBeenCalled();
   });
@@ -167,6 +171,7 @@ describe("CreateUserTeamUseCase", () => {
         userId,
         seasonId,
         "Yukhoi FC",
+        new Prisma.Decimal(INITIAL_BUDGET),
         new Prisma.Decimal(INITIAL_BUDGET),
         0,
         INITIAL_FREE_TRANSFERS,

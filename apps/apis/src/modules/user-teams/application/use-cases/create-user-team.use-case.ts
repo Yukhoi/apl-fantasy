@@ -43,6 +43,7 @@ export class CreateUserTeamUseCase {
       seasonId: input.seasonId,
       teamName: input.teamName,
       budgetLimit: INITIAL_BUDGET,
+      budgetBalance: INITIAL_BUDGET,
       freeTransfers: INITIAL_FREE_TRANSFERS,
     });
 

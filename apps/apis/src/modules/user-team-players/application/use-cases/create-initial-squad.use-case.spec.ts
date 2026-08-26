@@ -28,6 +28,7 @@ describe("CreateInitialSquadUseCase", () => {
       findById: jest.fn(),
       findByUserAndSeason: jest.fn(),
       create: jest.fn(),
+      updateBudgetBalance: jest.fn(),
     };
 
     playerRepository = {
@@ -39,6 +40,7 @@ describe("CreateInitialSquadUseCase", () => {
     userTeamPlayerRepository = {
       findActiveByUserTeamId: jest.fn(),
       createMany: jest.fn(),
+      createInitialSquadWithBudgetUpdate: jest.fn(),
     };
 
     useCase = new CreateInitialSquadUseCase(
@@ -65,6 +67,7 @@ describe("CreateInitialSquadUseCase", () => {
         seasonId,
         "Yukhoi FC",
         new Prisma.Decimal("100.00"),
+        new Prisma.Decimal("100.00"),
         0,
         3,
         new Date(),
@@ -75,8 +78,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     playerRepository.findByIds.mockResolvedValue(players);
 
-    userTeamPlayerRepository.createMany.mockResolvedValue([]);
-
+    userTeamPlayerRepository.createInitialSquadWithBudgetUpdate.mockResolvedValue(
+      undefined,
+    );
     const input = {
       playerIds: players.map((player) => player.playerId),
     };
@@ -93,15 +97,21 @@ describe("CreateInitialSquadUseCase", () => {
 
     expect(playerRepository.findByIds).toHaveBeenCalledWith(input.playerIds);
 
-    expect(userTeamPlayerRepository.createMany).toHaveBeenCalledTimes(1);
-
-    expect(userTeamPlayerRepository.createMany).toHaveBeenCalledWith(
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).toHaveBeenCalledWith(
       players.map((player) => ({
         userTeamId,
         playerId: player.playerId,
         purchasePrice: player.currentPrice.toFixed(2),
       })),
+      userTeamId,
+      new Prisma.Decimal("25.00"),
     );
+
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it("should reject a squad that does not contain exactly 15 players", async () => {
@@ -125,7 +135,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     expect(playerRepository.findByIds).not.toHaveBeenCalled();
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should reject duplicate players", async () => {
@@ -149,7 +161,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     expect(playerRepository.findByIds).not.toHaveBeenCalled();
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should throw NotFoundException when user team does not exist", async () => {
@@ -175,7 +189,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     expect(playerRepository.findByIds).not.toHaveBeenCalled();
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should throw ForbiddenException when user team belongs to another user", async () => {
@@ -196,6 +212,7 @@ describe("CreateInitialSquadUseCase", () => {
         ownerUserId, // 注意：属于另一个用户
         seasonId,
         "Other User FC",
+        new Prisma.Decimal("100.00"),
         new Prisma.Decimal("100.00"),
         0,
         3,
@@ -219,7 +236,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     expect(playerRepository.findByIds).not.toHaveBeenCalled();
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should throw ConflictException when user team already has an active squad", async () => {
@@ -238,6 +257,7 @@ describe("CreateInitialSquadUseCase", () => {
         userId,
         seasonId,
         "Yukhoi FC",
+        new Prisma.Decimal("100.00"),
         new Prisma.Decimal("100.00"),
         0,
         3,
@@ -270,7 +290,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     expect(playerRepository.findByIds).not.toHaveBeenCalled();
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should throw NotFoundException when one or more players do not exist", async () => {
@@ -289,6 +311,7 @@ describe("CreateInitialSquadUseCase", () => {
         userId,
         seasonId,
         "Yukhoi FC",
+        new Prisma.Decimal("100.00"),
         new Prisma.Decimal("100.00"),
         0,
         3,
@@ -312,7 +335,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     expect(playerRepository.findByIds).toHaveBeenCalledWith(input.playerIds);
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should reject a squad with invalid position distribution", async () => {
@@ -341,6 +366,7 @@ describe("CreateInitialSquadUseCase", () => {
         seasonId,
         "Yukhoi FC",
         new Prisma.Decimal("100.00"),
+        new Prisma.Decimal("100.00"),
         0,
         3,
         new Date(),
@@ -358,7 +384,9 @@ describe("CreateInitialSquadUseCase", () => {
       }),
     ).rejects.toThrow(BadRequestException);
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should reject a squad with more than 3 players from the same club", async () => {
@@ -397,6 +425,7 @@ describe("CreateInitialSquadUseCase", () => {
         seasonId,
         "Yukhoi FC",
         new Prisma.Decimal("100.00"),
+        new Prisma.Decimal("100.00"),
         0,
         3,
         new Date(),
@@ -414,7 +443,9 @@ describe("CreateInitialSquadUseCase", () => {
       }),
     ).rejects.toThrow(BadRequestException);
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should reject a squad when total player price exceeds budget limit", async () => {
@@ -445,6 +476,7 @@ describe("CreateInitialSquadUseCase", () => {
         seasonId,
         "Yukhoi FC",
         new Prisma.Decimal("100.00"),
+        new Prisma.Decimal("100.00"),
         0,
         3,
         new Date(),
@@ -462,7 +494,9 @@ describe("CreateInitialSquadUseCase", () => {
       }),
     ).rejects.toThrow(BadRequestException);
 
-    expect(userTeamPlayerRepository.createMany).not.toHaveBeenCalled();
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).not.toHaveBeenCalled();
   });
 
   it("should allow a squad when total price equals budget limit", async () => {
@@ -495,6 +529,7 @@ describe("CreateInitialSquadUseCase", () => {
         seasonId,
         "Yukhoi FC",
         new Prisma.Decimal("100.00"),
+        new Prisma.Decimal("100.00"),
         0,
         3,
         new Date(),
@@ -505,8 +540,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     playerRepository.findByIds.mockResolvedValue(players);
 
-    userTeamPlayerRepository.createMany.mockResolvedValue([]);
-
+    userTeamPlayerRepository.createInitialSquadWithBudgetUpdate.mockResolvedValue(
+      undefined,
+    );
     // Act + Assert
     await expect(
       useCase.execute(userId, userTeamId, {
@@ -514,7 +550,9 @@ describe("CreateInitialSquadUseCase", () => {
       }),
     ).resolves.not.toThrow();
 
-    expect(userTeamPlayerRepository.createMany).toHaveBeenCalledTimes(1);
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it("should allow injured, suspended and unavailable players", async () => {
@@ -552,6 +590,7 @@ describe("CreateInitialSquadUseCase", () => {
         seasonId,
         "Yukhoi FC",
         new Prisma.Decimal("100.00"),
+        new Prisma.Decimal("100.00"),
         0,
         3,
         new Date(),
@@ -562,7 +601,9 @@ describe("CreateInitialSquadUseCase", () => {
 
     playerRepository.findByIds.mockResolvedValue(playersWithStatuses);
 
-    userTeamPlayerRepository.createMany.mockResolvedValue([]);
+    userTeamPlayerRepository.createInitialSquadWithBudgetUpdate.mockResolvedValue(
+      undefined,
+    );
 
     await expect(
       useCase.execute(userId, userTeamId, {
@@ -570,7 +611,9 @@ describe("CreateInitialSquadUseCase", () => {
       }),
     ).resolves.not.toThrow();
 
-    expect(userTeamPlayerRepository.createMany).toHaveBeenCalledTimes(1);
+    expect(
+      userTeamPlayerRepository.createInitialSquadWithBudgetUpdate,
+    ).toHaveBeenCalledTimes(1);
   });
 });
 

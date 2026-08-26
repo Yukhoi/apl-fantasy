@@ -4,6 +4,7 @@ export class UserTeamResponseDto {
   seasonId!: string;
   teamName!: string;
   budgetLimit!: string;
+  budgetBalance!: string;
   totalPoints!: number;
   freeTransfers!: number;
   createdAt!: string;

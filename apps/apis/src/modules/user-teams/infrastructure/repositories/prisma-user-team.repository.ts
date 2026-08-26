@@ -5,6 +5,7 @@ import {
   CreateUserTeamData,
   UserTeamRepository,
 } from "../../domain/repositories/user-team.repository";
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class PrismaUserTeamRepository implements UserTeamRepository {
@@ -27,6 +28,7 @@ export class PrismaUserTeamRepository implements UserTeamRepository {
       userTeam.seasonId,
       userTeam.teamName,
       userTeam.budgetLimit,
+      userTeam.budgetBalance,
       userTeam.totalPoints,
       userTeam.freeTransfers,
       userTeam.createdAt,
@@ -56,6 +58,7 @@ export class PrismaUserTeamRepository implements UserTeamRepository {
       userTeam.seasonId,
       userTeam.teamName,
       userTeam.budgetLimit,
+      userTeam.budgetBalance,
       userTeam.totalPoints,
       userTeam.freeTransfers,
       userTeam.createdAt,
@@ -69,6 +72,7 @@ export class PrismaUserTeamRepository implements UserTeamRepository {
         seasonId: data.seasonId,
         teamName: data.teamName,
         budgetLimit: data.budgetLimit,
+        budgetBalance: data.budgetBalance,
         freeTransfers: data.freeTransfers,
       },
     });
@@ -79,9 +83,24 @@ export class PrismaUserTeamRepository implements UserTeamRepository {
       userTeam.seasonId,
       userTeam.teamName,
       userTeam.budgetLimit,
+      userTeam.budgetBalance,
       userTeam.totalPoints,
       userTeam.freeTransfers,
       userTeam.createdAt,
     );
+  }
+
+  async updateBudgetBalance(
+    userTeamId: string,
+    budgetBalance: Prisma.Decimal,
+  ): Promise<void> {
+    await this.prisma.userTeam.update({
+      where: {
+        userTeamId,
+      },
+      data: {
+        budgetBalance,
+      },
+    });
   }
 }

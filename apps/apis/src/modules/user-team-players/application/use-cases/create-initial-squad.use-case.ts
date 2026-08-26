@@ -63,43 +63,32 @@ export class CreateInitialSquadUseCase {
       );
     }
 
-    const userTeam =
-      await this.userTeamRepository.findById(userTeamId);
+    const userTeam = await this.userTeamRepository.findById(userTeamId);
 
     if (!userTeam) {
       throw new NotFoundException("User team not found");
     }
 
     if (userTeam.userId !== userId) {
-      throw new ForbiddenException(
-        "You do not have access to this user team",
-      );
+      throw new ForbiddenException("You do not have access to this user team");
     }
 
     const activePlayers =
-      await this.userTeamPlayerRepository.findActiveByUserTeamId(
-        userTeamId,
-      );
+      await this.userTeamPlayerRepository.findActiveByUserTeamId(userTeamId);
 
     if (activePlayers.length > 0) {
-      throw new ConflictException(
-        "Initial squad has already been created",
-      );
+      throw new ConflictException("Initial squad has already been created");
     }
 
-    const players =
-      await this.playerRepository.findByIds(input.playerIds);
+    const players = await this.playerRepository.findByIds(input.playerIds);
 
     if (players.length !== input.playerIds.length) {
-      throw new NotFoundException(
-        "One or more players were not found",
-      );
+      throw new NotFoundException("One or more players were not found");
     }
 
     const positionCounts = players.reduce(
       (counts, player) => {
-        counts[player.position] =
-          (counts[player.position] ?? 0) + 1;
+        counts[player.position] = (counts[player.position] ?? 0) + 1;
 
         return counts;
       },
@@ -120,17 +109,14 @@ export class CreateInitialSquadUseCase {
 
     const playersPerClub = players.reduce(
       (counts, player) => {
-        counts[player.clubId] =
-          (counts[player.clubId] ?? 0) + 1;
+        counts[player.clubId] = (counts[player.clubId] ?? 0) + 1;
 
         return counts;
       },
       {} as Record<string, number>,
     );
 
-    const exceedsClubLimit = Object.values(
-      playersPerClub,
-    ).some(
+    const exceedsClubLimit = Object.values(playersPerClub).some(
       (count) => count > MAX_PLAYERS_PER_CLUB,
     );
 
@@ -141,8 +127,7 @@ export class CreateInitialSquadUseCase {
     }
 
     const totalPrice = players.reduce(
-      (total, player) =>
-        total.plus(player.currentPrice),
+      (total, player) => total.plus(player.currentPrice),
       new Prisma.Decimal(0),
     );
 
@@ -152,14 +137,18 @@ export class CreateInitialSquadUseCase {
       );
     }
 
+    const budgetBalance = userTeam.budgetLimit.minus(totalPrice);
+
     const squadEntries = players.map((player) => ({
       userTeamId,
       playerId: player.playerId,
       purchasePrice: player.currentPrice.toFixed(2),
     }));
 
-    await this.userTeamPlayerRepository.createMany(
+    await this.userTeamPlayerRepository.createInitialSquadWithBudgetUpdate(
       squadEntries,
+      userTeamId,
+      budgetBalance,
     );
 
     return {

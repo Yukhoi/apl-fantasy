@@ -7,6 +7,7 @@ export class UserTeamEntity {
     public readonly seasonId: string,
     public readonly teamName: string,
     public readonly budgetLimit: Prisma.Decimal,
+    public readonly budgetBalance: Prisma.Decimal,
     public readonly totalPoints: number,
     public readonly freeTransfers: number,
     public readonly createdAt: Date,
