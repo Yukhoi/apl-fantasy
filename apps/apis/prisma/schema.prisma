@@ -205,8 +205,11 @@ model UserTeam {
   userId     String @map("user_id") @db.Uuid
   seasonId   String @map("season_id") @db.Uuid
 
-  teamName      String   @map("team_name")
-  budgetLimit   Decimal  @map("budget_limit") @db.Decimal(10, 2)
+  teamName      String  @map("team_name")
+  budgetLimit   Decimal @map("budget_limit") @db.Decimal(10, 2)
+
+  budgetBalance Decimal @default(0) @map("budget_balance") @db.Decimal(10, 2)
+
   totalPoints   Int      @default(0) @map("total_points")
   freeTransfers Int      @default(0) @map("free_transfers")
   createdAt     DateTime @default(now()) @map("created_at")
