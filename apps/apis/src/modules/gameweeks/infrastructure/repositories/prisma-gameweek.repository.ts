@@ -25,7 +25,9 @@ export class PrismaGameweekRepository implements GameweekRepository {
           gameweek.gameweekId,
           gameweek.seasonId,
           gameweek.gwNumber,
+          gameweek.deadlineAt,
           gameweek.startsAt,
+          gameweek.endsAt,
         ),
     );
   }
@@ -40,12 +42,14 @@ export class PrismaGameweekRepository implements GameweekRepository {
     if (!gameweek) {
       return null;
     }
-
+    
     return new GameweekEntity(
       gameweek.gameweekId,
       gameweek.seasonId,
       gameweek.gwNumber,
+      gameweek.deadlineAt,
       gameweek.startsAt,
+      gameweek.endsAt,
     );
   }
 }
