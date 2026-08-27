@@ -310,7 +310,7 @@ model TransferBatch {
 
   transfersMade      Int     @default(0) @map("transfers_made")
   pointsCost         Int     @default(0) @map("points_cost")
-  budgetBalanceAfter Decimal @map("budget_balance_after") @db.Decimal(10, 2)
+  budgetBalanceAfter Decimal? @map("budget_balance_after") @db.Decimal(10, 2)
 
   userTeam UserTeam @relation(fields: [userTeamId], references: [userTeamId], onDelete: Cascade)
   gameweek Gameweek @relation(fields: [gameweekId], references: [gameweekId], onDelete: Cascade)
