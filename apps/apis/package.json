@@ -46,6 +46,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "test": "jest",
+    "test:integration": "jest --config jest.integration.config.ts --runInBand",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
   }

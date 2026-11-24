@@ -1,0 +1,3 @@
+export const FREE_TRANSFERS_PER_GAMEWEEK = 2;
+
+export const POINTS_PER_EXTRA_TRANSFER = 4;

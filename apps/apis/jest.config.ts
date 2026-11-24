@@ -5,6 +5,7 @@ const config: Config = {
   testEnvironment: "node",
 
   testRegex: ".*\\.spec\\.ts$",
+  testPathIgnorePatterns: ["/node_modules/", "\\.integration\\.spec\\.ts$"],
 
   moduleFileExtensions: ["ts", "js", "json"],
 
